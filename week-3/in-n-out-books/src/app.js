@@ -1,4 +1,4 @@
-//
+//**
 name: "Leslie Khattarchebli"
 Date: "8/31/2025"
 file_Name: "app.js"
@@ -90,11 +90,6 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-
-// Export the app instead of server
-module.exports = app;
-
-
 app.get('/api/books', (req, res) => {
   try {
     const books = mockDatabase.getBooks(); //an array
@@ -106,7 +101,7 @@ app.get('/api/books', (req, res) => {
 
 const express = require("express");
 const Collection = require("./collection");
-module.exports = app;
+
 
 // database
 const books = new Collection([
@@ -161,3 +156,90 @@ describe('GET /books/:id', () => {
     });
   });
 });
+
+// POST /api/books endpoint to add a new book
+const express = require("express");
+const createError = require("http-errors");
+
+app.use(express.json());
+app.post("/api/books", (req, res, next) => {
+  try {
+    const { title, author } = req.body;
+
+    if (!title) {
+      throw createError(400, "Book title is required");
+    }
+
+    const newBook = { id: books.length + 1, title, author };
+    books.push(newBook);
+
+    res.status(201).json(newBook);
+  } catch (err) {
+    next(err); // Pass error to Express error handler
+  }
+});
+
+// DELETE /api/books/:id endpoint to delete a book by ID
+app.delete('/api/books/:id', async (req, res, next) => {
+  try {
+    const bookId = parseInt(req.params.id, 10);
+    const bookIndex = mockDatabase.findIndex(book => book.id === bookId);
+
+    if (bookIndex === -1) {
+      return res.status(404).json({ message: 'Book not found' });
+    }
+
+    mockDatabase.splice(bookIndex, 1); // Remove the book
+    res.sendStatus(204); // No Content
+  } catch (err) {
+    next(err); // Pass error to Express error handler
+  }
+});
+
+
+// Week 6: User Authentication with bcryptjs and http-errors
+
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const createError = require("http-errors");
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+//user login data - in users.js, this would come from database file
+const customerUser = {
+  email: "user@in-n-out-books.com",
+  passwordHash: bcrypt.hashSync("securePassword123") // hashed password
+};
+
+// POST /api/login route
+app.post("/api/login", (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    // Check for missing items in password and email
+    if (!email || !password) {
+      throw createError(400, "Email and password are required");
+    }
+
+    // Simulate user lookup- in app, this would search a database
+    if (email !== customerUser.email) {
+      throw createError(401, "Unauthorized");
+    }
+
+    // Compare password
+    const isPasswordValid = bcrypt.compareSync(password, customerUser.passwordHash);
+    if (!isPasswordValid) {
+      throw createError(401, "Unauthorized");
+    }
+
+    // Success
+    res.status(200).json({ message: "Authentication successful" });
+
+  } catch (err) {
+    next(err); // Pass error to Express error handler
+  }
+});
+
+// Export the app last line so all routes/middleware are included
+module.exports = app;

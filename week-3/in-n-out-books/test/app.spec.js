@@ -21,6 +21,8 @@ describe('Chapter 3: API Tests', () => {
   });
 });
 
+
+//Start of Week 5
 //Chapter 4: API Tests
 request(app).post('/books').send({ title: 'Clean Code' });
 
@@ -60,4 +62,87 @@ describe('Chapter 4: API Tests', () => {
     expect(res.statusCode).toBe(204);
   });
 });
+//End of Week 5
 
+
+//Start: of Week 6
+
+const request = require("supertest");
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const createError = require("http-errors");
+
+// Imported Express app
+const app = require("./app");
+
+// Mock user data
+const validEmail = "user@example.com";
+const validPassword = "securePassword123";
+const invalidPassword = "wrongPassword";
+
+// Users.js - database
+const users = [
+  {
+    email: validEmail,
+    passwordHash: bcrypt.hashSync(validPassword)
+  }
+];
+
+// Login route tests
+app.post("/api/login", (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      throw createError(400, "Bad Request");
+    }
+
+    const user = users.find(u => u.email === email);
+    if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
+      throw createError(401, "Unauthorized");
+    }
+
+    res.status(200).json({ message: "Authentication successful" });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  res.status(err.status || 500).json({
+    type: "error",
+    status: err.status || 500,
+    message: err.message
+  });
+});
+
+describe("Chapter 6: API Tests", () => {
+  test("Logs user in and returns a 200-status", async () => {
+    const response = await request(app)
+      .post("/api/login")
+      .send({ email: validEmail, password: validPassword });
+
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe("Authentication successful");
+  });
+
+  test("Returns a 401-status", async () => {
+    const response = await request(app)
+      .post("/api/login")
+      .send({ email: validEmail, password: invalidPassword });
+
+    expect(response.status).toBe(401);
+    expect(response.body.message).toBe("Unauthorized");
+  });
+
+  test("Return a 400-status code", async () => {
+    const response = await request(app)
+      .post("/api/login")
+      .send({ email: "" }); // Missing password
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("Bad Request");
+  });
+});
+// End: of Week 6
