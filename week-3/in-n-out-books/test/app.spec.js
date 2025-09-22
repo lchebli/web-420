@@ -72,14 +72,6 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const createError = require("http-errors");
 
-// Imported Express app
-const app = require("./app");
-
-// Mock user data
-const validEmail = "user@example.com";
-const validPassword = "securePassword123";
-const invalidPassword = "wrongPassword";
-
 // Users.js - database
 const users = require("users.js");
 
