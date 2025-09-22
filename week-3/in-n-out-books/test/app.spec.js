@@ -81,12 +81,7 @@ const validPassword = "securePassword123";
 const invalidPassword = "wrongPassword";
 
 // Users.js - database
-const users = [
-  {
-    email: validEmail,
-    passwordHash: bcrypt.hashSync(validPassword)
-  }
-];
+const users = require("users.js");
 
 // Login route tests
 app.post("/api/login", (req, res, next) => {
