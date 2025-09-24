@@ -64,8 +64,50 @@ describe('Chapter 4: API Tests', () => {
 });
 //End of Week 5
 
+//“Chapter 5: API Tests” Week 6
 
-//Start: of Week 6
+const request = require('supertest');
+const app = require('../app'); // Adjust path if needed
+
+describe('Chapter 5: API Tests', () => {
+
+  it('Should update a book and return a 204 code', async () => {
+    const response = await request(app)
+      .put('/api/books/1')
+      .send({
+        title: 'Updated Title',
+        author: 'Updated Author'
+      });
+
+    expect(response.status).toEqual(204);
+  });
+
+  it('Should return a 400-status code when using a non-numeric id', async () => {
+    const response = await request(app)
+      .put('/api/books/foo')
+      .send({
+        title: 'Some Title',
+        author: 'Some Author'
+      });
+
+    expect(response.status).toEqual(400);
+    expect(response.body.message).toEqual('Input must be a number');
+  });
+
+  it('Should return a 400-status code when updating a book with a missing title', async () => {
+    const response = await request(app)
+      .put('/api/books/1')
+      .send({
+        author: 'Author Only'
+      });
+
+    expect(response.status).toEqual(400);
+    expect(response.body.message).toEqual('Bad Request');
+  });
+});
+//end of Chapter 5 week 6
+
+//Chapter 6: API Tests Week 7
 
 const request = require("supertest");
 const express = require("express");
@@ -132,4 +174,4 @@ describe("Chapter 6: API Tests", () => {
     expect(response.body.message).toBe("Bad Request");
   });
 });
-// End: of Week 6
+// End: of Week 7

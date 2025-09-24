@@ -196,9 +196,37 @@ app.delete('/api/books/:id', async (req, res, next) => {
   }
 });
 
+// Week 6: Start
+const createError = require("http-errors");
 
-// Week 6: User Authentication with bcryptjs and http-errors
+app.put("/api/books/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { title, author } = req.body;
 
+    if (isNaN(Number(id))) {
+      throw createError(400, "Invalid book ID");
+    }
+
+    if (!title) {
+      throw createError(400, "Book title is needed");
+    }
+
+    books[bookIndex] = { id, title, author };
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+
+  const bookIndex = books.findIndex(book => book.id === id);
+  if (bookIndex === -1) {
+    return res.status(404).json({ message: "Book is not found" });
+  }
+});
+
+//week 6: end
+
+//week 7: Authentication: start
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const createError = require("http-errors");
@@ -241,5 +269,8 @@ app.post("/api/login", (req, res, next) => {
   }
 });
 
+//week7: Authentication: end
+
 // Export the app last line so all routes/middleware are included
 module.exports = app;
+
