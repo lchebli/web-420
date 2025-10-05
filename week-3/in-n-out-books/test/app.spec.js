@@ -175,3 +175,64 @@ describe("Chapter 6: API Tests", () => {
   });
 });
 // End: of Week 7
+
+//start of week 8
+
+// app.spec.js
+const request = require('supertest');
+const app = require('./app'); // assuming your Express app is exported from app.js
+
+describe("Chapter 7: API Tests", () => {
+
+  it("should return a 200 status with 'Security questions successfully answered' message", async () => {
+    const response = await request(app)
+      .post('/api/security-questions')
+      .send({
+        question1: "What is your favorite color?",
+        answer1: "Orange",
+        question2: "What is your favorite food?",
+        answer2: "Pasta",
+        question3: "What is your pet's name?",
+        answer3: "Sparky"
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      message: "Security questions successfully answered"
+    });
+  });
+
+  it("should return a 400 status code with 'Bad Request' message when the request body fails ajv validation", async () => {
+    const response = await request(app)
+      .post('/api/security-questions')
+      .send({
+        // Missing required fields
+        question1: "What is your favorite color?"
+        // answer1 is missing
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      message: "Bad Request"
+    });
+  });
+
+  it("should return a 401 status code with 'Unauthorized' message when the security questions are incorrect", async () => {
+    const response = await request(app)
+      .post('/api/security-questions')
+      .send({
+        question1: "What is your favorite color?",
+        answer1: "WrongAnswer",
+        question2: "What is your favorite food?",
+        answer2: "WrongFood"
+      });
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      message: "Unauthorized"
+    });
+  });
+
+});
+
+//end of week 8

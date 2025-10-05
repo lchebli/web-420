@@ -274,3 +274,82 @@ app.post("/api/login", (req, res, next) => {
 // Export the app last line so all routes/middleware are included
 module.exports = app;
 
+//week 8: Enhancing API security: start
+const express = require("express");
+const Ajv = require("ajv");
+const ajv = new Ajv();
+app.use(express.json());
+
+// JSON validation
+const securityQuestionsSchema = {
+  type: "object",
+  properties: {
+    securityQuestions: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          answer: { type: "string" }
+        },
+        required: ["answer"],
+        additionalProperties: false
+      },
+      minItems: 3,
+      maxItems: 3
+    }
+  },
+  required: ["securityQuestions"],
+  additionalProperties: false
+};
+
+const validate = ajv.compile(securityQuestionsSchema);
+
+// database
+const mockDB = {
+  "thomas@hgmail.com": {
+    securityQuestions: [
+      { answer: "orange" },
+      { answer: "pasta" },
+      { answer: "sparky" }
+    ]
+  }
+};
+
+// Route Questions
+app.post("/api/users/:email/verify-security-question", async (req, res, next) => {
+  try {
+    const { email } = req.params;
+    const user = mockDB[email];
+
+    if (!user) {
+      const err = new Error("User not found");
+      err.status = 404;
+      throw err;
+    }
+
+    const valid = validate(req.body);
+    if (!valid) {
+      const err = new Error("Bad Request: " + ajv.errorsText(validate.errors));
+      err.status = 400;
+      throw err;
+    }
+
+    const { securityQuestions } = req.body;
+
+    const answersMatch = securityQuestions.every((q, i) =>
+      q.answer === user.securityQuestions[i].answer
+    );
+
+    if (!answersMatch) {
+      const err = new Error("Unauthorized");
+      err.status = 401;
+      throw err;
+    }
+
+    res.status(200).json({ message: "Security questions successfully answered" });
+  } catch (err) {
+    console.error("Error:", err.message);
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+//week 8: Enhancing API security: end
